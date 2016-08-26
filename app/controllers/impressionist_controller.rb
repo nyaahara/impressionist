@@ -10,6 +10,11 @@ module ImpressionistController
   module InstanceMethods
     def self.included(base)
       base.before_filter :impressionist_app_filter
+      base.after_filter :impressionist_show_filter
+    end
+
+    def impressionist_show_filter
+      impressionist(instance_variable_get("@#{controller_name}"))
     end
 
     def impressionist(obj,message=nil,opts={})
@@ -30,6 +35,10 @@ module ImpressionistController
     end
 
     def impressionist_subapp_filter(opts = {})
+      # NOTE: If show action, use #impressionist_show_filter, because model that class and module children doesn't work.(xxxx/model)
+      # This factor is mismatch of impressionable_type.
+      return if action_name.to_sym == :show
+
       if should_count_impression?(opts)
         actions = opts[:actions]
         actions.collect!{|a|a.to_s} unless actions.blank?
